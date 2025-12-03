@@ -1,0 +1,7 @@
+{
+  "name": "UpcycleAI",
+  "description": "Transform your trash into treasure. Point your camera at any object to get instant, creative DIY upcycling tutorials.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
