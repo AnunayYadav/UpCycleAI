@@ -1,5 +1,7 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Camera as CameraIcon, X, RefreshCw, Sparkles, Send } from 'lucide-react';
+import { playSound } from '../services/soundService';
 
 interface CameraProps {
   onCapture: (imageSrc: string, userPrompt?: string) => void;
@@ -53,6 +55,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
   }, [capturedImage]); // Re-run when capture state changes
 
   const handleCapture = () => {
+    playSound('shutter');
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -80,21 +83,29 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
         const result = reader.result as string;
         const base64Data = result.split(',')[1];
         setCapturedImage(base64Data);
+        playSound('pop');
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleRetake = () => {
+    playSound('click');
     setCapturedImage(null);
     setUserPrompt('');
   };
 
   const handleAnalyze = () => {
+    playSound('click');
     if (capturedImage) {
       onCapture(capturedImage, userPrompt);
     }
   };
+
+  const handleClose = () => {
+    playSound('click');
+    onClose();
+  }
 
   // Preview Mode UI
   if (capturedImage) {
@@ -158,7 +169,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
       {/* Header */}
       <div className="w-full flex justify-between items-center text-white py-4 px-2">
         <h2 className="text-lg font-semibold">Scan Item</h2>
-        <button onClick={onClose} className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+        <button onClick={handleClose} className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
           <X className="w-6 h-6" />
         </button>
       </div>
