@@ -138,6 +138,7 @@ export const playPCM = (base64Audio: string, onEnded?: () => void): { stop: () =
         stop: () => {
             try {
                 source.stop();
+                if (onEnded) source.onended = null; // Prevent callback if manually stopped
             } catch (e) {
                 // Ignore errors if already stopped
             }

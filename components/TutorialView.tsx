@@ -57,14 +57,18 @@ const TutorialView: React.FC<TutorialViewProps> = ({ project, identifiedItem, on
     }
   };
 
+  const stopPlayback = () => {
+      if (stopAudioRef.current) {
+          stopAudioRef.current();
+          stopAudioRef.current = null;
+      }
+      setIsPlaying(false);
+  };
+
   // Stop audio when unmounting or changing steps
   useEffect(() => {
     return () => {
-        if (stopAudioRef.current) {
-            stopAudioRef.current();
-            stopAudioRef.current = null;
-        }
-        setIsPlaying(false);
+        stopPlayback();
     };
   }, [currentStep]); // Also triggers when step changes
 
@@ -80,13 +84,9 @@ const TutorialView: React.FC<TutorialViewProps> = ({ project, identifiedItem, on
   }, [currentStep]); 
 
   const handleReadAloud = async () => {
-      // If currently playing, stop it
+      // If currently playing, stop it (Pause functionality)
       if (isPlaying) {
-          if (stopAudioRef.current) {
-              stopAudioRef.current();
-              stopAudioRef.current = null;
-          }
-          setIsPlaying(false);
+          stopPlayback();
           return;
       }
       
@@ -176,7 +176,7 @@ const TutorialView: React.FC<TutorialViewProps> = ({ project, identifiedItem, on
                 : 'text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-[0_0_10px_rgba(34,197,94,0.4)]'
             }`}
         >
-            {isAudioLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : isPlaying ? <Pause className="w-6 h-6 text-green-500" /> : <Volume2 className="w-6 h-6" />}
+            {isAudioLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : isPlaying ? <Pause className="w-6 h-6 text-green-500 fill-current" /> : <Volume2 className="w-6 h-6" />}
         </button>
       </div>
 
