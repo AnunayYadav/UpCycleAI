@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>UpcycleAI - Trash to Treasure</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -16,11 +16,13 @@
               'safe': 'env(safe-area-inset-bottom)',
             },
             animation: {
-              fadeIn: 'fadeIn 0.5s ease-out',
-              slideUp: 'slideUp 0.5s ease-out',
-              blob: 'blob 7s infinite',
-              scaleIn: 'scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-              rotate3d: 'rotate3d 8s linear infinite',
+              fadeIn: 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              slideUp: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              slideInRight: 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              blob: 'blob 10s infinite',
+              scaleIn: 'scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              rotate3d: 'rotate3d 12s linear infinite',
+              pulseSlow: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },
             keyframes: {
               fadeIn: {
@@ -28,17 +30,21 @@
                 '100%': { opacity: '1' },
               },
               slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '0%': { transform: 'translateY(30px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
               },
+              slideInRight: {
+                '0%': { transform: 'translateX(100%)' },
+                '100%': { transform: 'translateX(0)' },
+              },
               scaleIn: {
-                 '0%': { transform: 'scale(0.8)', opacity: '0' },
+                 '0%': { transform: 'scale(0.9)', opacity: '0' },
                  '100%': { transform: 'scale(1)', opacity: '1' },
               },
               blob: {
                 '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '33%': { transform: 'translate(50px, -70px) scale(1.1)' },
+                '66%': { transform: 'translate(-30px, 40px) scale(0.9)' },
                 '100%': { transform: 'translate(0px, 0px) scale(1)' },
               },
               rotate3d: {
@@ -47,11 +53,13 @@
               }
             },
             colors: {
-              dark: {
-                bg: '#0f172a',
-                card: '#1e293b',
-                text: '#f1f5f9',
-                muted: '#94a3b8'
+              midnight: {
+                black: '#000000',
+                card: '#0a0a0a',
+                border: 'rgba(255,255,255,0.06)',
+                accent: '#10b981', // emerald-500
+                glow: 'rgba(16,185,129,0.3)',
+                muted: '#525252'
               }
             }
           },
@@ -61,21 +69,33 @@
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        /* background-color: #f0fdf4;  Removed to let React handle bg classes */
+        background-color: #000000;
+        color: #ffffff;
         -webkit-tap-highlight-color: transparent;
-        transition: background-color 0.3s ease, color 0.3s ease;
+        transition: background-color 0.4s ease, color 0.4s ease;
+        overflow-x: hidden;
       }
-      /* Hide scrollbar for clean horizontal scrolling */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
+      .dark body {
+        background-color: #000000;
+        color: #ffffff;
       }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+      body:not(.dark) {
+        background-color: #ffffff;
+        color: #111827;
       }
-      .preserve-3d {
-        transform-style: preserve-3d;
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .glass {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
+      .emerald-glow {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+      }
+      .emerald-text-glow {
+        text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+      }
+      .preserve-3d { transform-style: preserve-3d; }
     </style>
   <script type="importmap">
 {
@@ -90,9 +110,8 @@
 }
 </script>
 </head>
-  <body>
+  <body class="bg-black">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>
-    

@@ -1,25 +1,31 @@
 
 import React from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Recycle } from 'lucide-react';
 
 const LoadingOverlay: React.FC = () => {
   return (
-    <div className="fixed inset-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center transition-colors duration-300">
-      <div className="relative mb-8">
-        <div className="absolute inset-0 bg-green-200 dark:bg-green-800 rounded-full animate-ping opacity-20"></div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-xl relative z-10 border-2 border-green-100 dark:border-green-900">
-          <Sparkles className="w-12 h-12 text-green-600 dark:text-green-400 animate-pulse" />
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-8 text-center animate-fadeIn">
+      {/* Dynamic background effect */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-emerald-500 rounded-full blur-[100px] animate-pulseSlow"></div>
+      </div>
+
+      <div className="relative mb-12">
+        <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-10"></div>
+        <div className="w-24 h-24 bg-midnight-card rounded-[32px] border-2 border-emerald-500/30 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.2)] relative z-10 overflow-hidden">
+          <Recycle className="w-10 h-10 text-emerald-500 animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent"></div>
         </div>
       </div>
       
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analyzing your Item...</h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-xs animate-pulse">
-        Our AI is scanning the shape and material to find the best upcycling projects for you.
+      <h3 className="text-3xl font-black text-white mb-3 tracking-tight">ANALYZING <span className="text-emerald-500">WASTE</span></h3>
+      <p className="text-gray-500 font-medium max-w-xs leading-relaxed mb-10">
+        Our AI is scanning shape, material and context to find creative treasures.
       </p>
       
-      <div className="mt-8 flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/50 px-4 py-2 rounded-full">
+      <div className="flex items-center gap-3 px-6 py-3 bg-midnight-card border border-white/5 rounded-full text-xs font-black tracking-widest text-emerald-500 uppercase shadow-xl">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Processing trash to treasure
+        Consulting Gemini AI
       </div>
     </div>
   );
