@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Scan, Leaf, Recycle, ChevronRight, Heart, Home, User, Search, Camera as CameraIcon, Clock, ArrowRight, X, Quote, Crown, Sliders, Lock, Zap, Star } from 'lucide-react';
+import { Scan, Leaf, Recycle, ChevronRight, Heart, Home, User, Search, Camera as CameraIcon, Clock, ArrowRight, X, Quote, Crown, Sliders, Lock, Zap, Star, Trophy, Target } from 'lucide-react';
 import Camera from './components/Camera';
 import ProjectCard from './components/ProjectCard';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -50,6 +50,7 @@ const App: React.FC = () => {
   const [dailyQuote, setDailyQuote] = useState("");
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showLevelBreakdown, setShowLevelBreakdown] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<ProjectCategory>('All');
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,13 +90,9 @@ const App: React.FC = () => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       document.body.style.backgroundColor = '#000000';
-      document.body.classList.remove('bg-white');
-      document.body.classList.add('bg-black');
     } else {
       document.documentElement.classList.remove('dark');
       document.body.style.backgroundColor = '#ffffff';
-      document.body.classList.remove('bg-black');
-      document.body.classList.add('bg-white');
     }
     localStorage.setItem('upcycleUserProfile', JSON.stringify(userProfile));
   }, [userProfile]);
@@ -197,7 +194,7 @@ const App: React.FC = () => {
                className={`whitespace-nowrap px-5 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-300
                  ${categoryFilter === cat.id 
                    ? 'bg-emerald-500 text-black border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
-                   : 'bg-midnight-card dark:bg-midnight-card bg-gray-100 text-gray-500 dark:text-gray-400 border-black/5 dark:border-white/5 hover:border-emerald-500/20'}
+                   : 'bg-gray-100 dark:bg-midnight-card text-gray-500 dark:text-gray-400 border-black/5 dark:border-white/5 hover:border-emerald-500/20'}
                  ${isLocked ? 'opacity-70' : ''}
                `}
              >
@@ -207,6 +204,62 @@ const App: React.FC = () => {
              </button>
            )
         })}
+      </div>
+    </div>
+  );
+
+  const LevelBreakdown = () => (
+    <div className="fixed inset-0 z-[110] animate-fadeIn flex items-center justify-center p-6">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowLevelBreakdown(false)}></div>
+      <div className="relative w-full max-w-sm bg-white dark:bg-midnight-card rounded-[40px] p-8 border border-gray-100 dark:border-white/5 shadow-2xl animate-scaleIn">
+         <button onClick={() => setShowLevelBreakdown(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+            <X className="w-6 h-6" />
+         </button>
+         
+         <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-emerald-500 rounded-[28px] mx-auto flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+               <Trophy className="w-10 h-10 text-black" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Level {userProfile.level}</h3>
+            <p className="text-emerald-500 font-bold uppercase tracking-widest text-xs">{currentLevelData.title}</p>
+         </div>
+
+         <div className="space-y-6">
+            <div className="space-y-2">
+               <div className="flex justify-between text-xs font-black uppercase tracking-widest text-gray-500">
+                  <span>Progress</span>
+                  <span className="text-gray-900 dark:text-white">{userProfile.xp} / {nextLevelData?.minXp || 'MAX'} XP</span>
+               </div>
+               <div className="w-full h-3 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                  <div className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+               <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-3xl border border-black/5 dark:border-white/5 text-center">
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{userProfile.scansCount}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Scans</p>
+               </div>
+               <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-3xl border border-black/5 dark:border-white/5 text-center">
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{userProfile.buildsCount}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Builds</p>
+               </div>
+            </div>
+
+            {nextLevelData && (
+              <div className="flex items-center gap-3 bg-emerald-500/5 dark:bg-emerald-500/5 p-4 rounded-3xl border border-emerald-500/20">
+                <Target className="w-5 h-5 text-emerald-500" />
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Next Unlock</p>
+                   <p className="text-xs font-bold text-gray-900 dark:text-white">{nextLevelData.title}</p>
+                </div>
+              </div>
+            )}
+         </div>
+
+         <button onClick={() => setShowLevelBreakdown(false)} className="w-full mt-8 py-4 bg-emerald-500 text-black font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+            GOT IT
+         </button>
       </div>
     </div>
   );
@@ -221,6 +274,7 @@ const App: React.FC = () => {
 
       {levelUpData && <LevelUpOverlay level={levelUpData.level} title={levelUpData.title} onClose={() => setLevelUpData(null)} />}
       {showPremiumModal && <PremiumModal onClose={() => setShowPremiumModal(false)} onUpgrade={handleUpgradeToPremium} />}
+      {showLevelBreakdown && <LevelBreakdown />}
       
       {/* Profile Sliding Overlay */}
       {showProfile && (
@@ -250,14 +304,17 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
-             <div className="bg-gray-100 dark:bg-midnight-card px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5 flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-black text-[10px] font-black">
+             <button 
+                onClick={() => { setShowLevelBreakdown(true); playSound('click'); }}
+                className="bg-gray-100 dark:bg-midnight-card px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5 flex items-center gap-2 hover:scale-105 transition-transform active:scale-95 group"
+             >
+                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-black text-[10px] font-black group-hover:shadow-[0_0_8px_rgba(16,185,129,0.8)] transition-shadow">
                   {userProfile.level}
                 </div>
                 <div className="w-16 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                    <div className="h-full bg-emerald-500" style={{ width: `${progressPercent}%` }}></div>
                 </div>
-             </div>
+             </button>
              {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
           </div>
         </header>
