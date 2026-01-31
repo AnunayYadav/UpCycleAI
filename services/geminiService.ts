@@ -2,8 +2,14 @@
 import { GoogleGenAI, Type, Schema, Modality } from "@google/genai";
 import { AnalysisResult, ProjectCategory, GroundedMaterial } from "../types";
 
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to initialize AI only when needed
+const getAI = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY is not defined in the environment. Please add it to your Vercel Environment Variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 const projectSchema: Schema = {
   type: Type.OBJECT,
@@ -57,9 +63,9 @@ const projectSchema: Schema = {
 
 export const analyzeItem = async (base64Image: string | null, textPrompt: string, categoryFilter: ProjectCategory = 'All'): Promise<AnalysisResult> => {
   try {
-    const model = "gemini-2.5-flash"; 
+    const ai = getAI();
+    const model = "gemini-2.5-flash-lite-latest"; 
 
-    // Construct request parts based on available inputs
     const parts: any[] = [];
     
     if (base64Image) {
@@ -86,11 +92,11 @@ export const analyzeItem = async (base64Image: string | null, textPrompt: string
 
             CRITICAL RULES:
             1. Suggest projects that are physically possible for an average person.
-            2. Avoid gimmicks or impossible logic (e.g., don't suggest turning a plastic bottle into a workable car engine).
+            2. Avoid gimmicks or impossible logic.
             3. ${categoryFilter === 'All' ? "Focus on a mix of home decor, storage organization, and garden utilities." : `Focus STRICTLY on ${categoryFilter} projects.`}
-            4. Ensure materials needed are common household items (glue, scissors, paint) or listed by the user.
+            4. Ensure materials needed are common household items.
             5. Generate a random UUID for the 'id' field.
-            6. For 'searchQuery': Generate a specific string that returns the best video results on YouTube. e.g., "DIY upcycle wine bottle into self watering planter tutorial".
+            6. For 'searchQuery': Generate a specific string for YouTube.
             7. PROVIDE DETAILED STEPS: Each step must have a title, instruction, detailed description, tip, and safety caution.
             
             Return the result in JSON format.`;
@@ -112,8 +118,7 @@ export const analyzeItem = async (base64Image: string | null, textPrompt: string
     const text = response.text;
     if (!text) throw new Error("No response from AI");
 
-    const result = JSON.parse(text) as AnalysisResult;
-    return result;
+    return JSON.parse(text) as AnalysisResult;
 
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
@@ -121,19 +126,15 @@ export const analyzeItem = async (base64Image: string | null, textPrompt: string
   }
 };
 
-// Backward compatibility wrapper
 export const analyzeImageAndGetProjects = async (base64Image: string, userPrompt?: string): Promise<AnalysisResult> => {
     return analyzeItem(base64Image, userPrompt || "", 'All');
 };
 
-/**
- * FEATURE: FAST AI RESPONSES
- * Uses gemini-2.5-flash-lite for low latency generation of dynamic eco-tips.
- */
 export const generateQuickTip = async (): Promise<string> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3-flash-preview',
       contents: 'Generate a short, catchy, 1-sentence motivating tip or quote about recycling, upcycling, or sustainability.',
     });
     return response.text?.trim() || "Recycling turns things into other things. Which is like magic.";
@@ -143,23 +144,18 @@ export const generateQuickTip = async (): Promise<string> => {
   }
 };
 
-/**
- * FEATURE: IMAGE GENERATION
- * Uses gemini-3-pro-image-preview for Premium (High Res) and gemini-2.5-flash-image for Free.
- */
 export const generateProjectImage = async (projectTitle: string, originalItem: string, isPremium: boolean): Promise<string> => {
   try {
+    const ai = getAI();
     const model = isPremium ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
     
     const prompt = `A professional DIY product photography shot of a finished upcycling project: "${projectTitle}" made from "${originalItem}". 
-    The image should look like a high-quality Pinterest or Instagram craft result. 
     Bright lighting, clean background, aesthetic, realistic, finished product.`;
 
-    // Config for Premium High Res
     const config = isPremium ? {
         imageConfig: {
-            imageSize: "2K", 
-            aspectRatio: "1:1"
+            imageSize: "1K" as const, 
+            aspectRatio: "1:1" as const
         }
     } : {};
 
@@ -186,27 +182,16 @@ export const generateProjectImage = async (projectTitle: string, originalItem: s
 
 export const generateStepImage = async (stepDescription: string, projectTitle: string, originalItem: string, isPremium: boolean): Promise<string> => {
   try {
+    const ai = getAI();
     const model = isPremium ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
     
-    // Prompt engineered to be safer and avoid "gore" triggers from tools/cutting
     const prompt = `Create a clean, colorful, 3D-style isometric ILLUSTRATION for a DIY instruction manual.
-    
-    Action to illustrate: "${stepDescription}".
-    Context: Making a "${projectTitle}" from a "${originalItem}".
-    
-    VISUAL STYLE GUIDELINES:
-    1. Style: "Toy-like 3D render" or "Claymation style". Bright colors, smooth surfaces. NOT photorealistic.
-    2. View: Isometric top-down.
-    3. Background: Solid soft pastel color (light blue or white).
-    4. Focus: Clearly show the action (e.g. glue being applied, scissors near the object).
-    5. Content Safety: If the action involves cutting, show the scissors NEXT TO the object, or show the object already cut. Do not show sharp blades penetrating skin or realistic damage. Keep it family-friendly and instructional.
-    
-    The goal is to visually explain the step clearly.`;
+    Action: "${stepDescription}". Context: "${projectTitle}" from "${originalItem}". Style: Toy-like 3D render, isometric, pastel background.`;
 
-     const config = isPremium ? {
+    const config = isPremium ? {
         imageConfig: {
-            imageSize: "1K", // Steps don't need 4K
-            aspectRatio: "16:9"
+            imageSize: "1K" as const,
+            aspectRatio: "16:9" as const
         }
     } : {};
 
@@ -231,19 +216,16 @@ export const generateStepImage = async (stepDescription: string, projectTitle: s
   }
 };
 
-/**
- * FEATURE: GENERATE SPEECH (TTS)
- * Uses gemini-2.5-flash-preview-tts to read steps aloud.
- */
 export const generateSpeech = async (text: string): Promise<string> => {
     try {
+        const ai = getAI();
         if (!text || text.trim() === "") throw new Error("Empty text for TTS");
         
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-preview-tts',
             contents: [{ parts: [{ text: text.trim() }] }],
             config: {
-                responseModalities: ['AUDIO' as Modality], // Force string to avoid enum issues if undefined
+                responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: { voiceName: 'Kore' }
@@ -253,7 +235,7 @@ export const generateSpeech = async (text: string): Promise<string> => {
         });
 
         const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!audioData) throw new Error("No audio generated from Gemini API");
+        if (!audioData) throw new Error("No audio generated");
         return audioData;
 
     } catch (error) {
@@ -262,17 +244,13 @@ export const generateSpeech = async (text: string): Promise<string> => {
     }
 }
 
-/**
- * FEATURE: SEARCH GROUNDING
- * Uses gemini-2.5-flash with googleSearch to find real-world buying info or facts.
- */
 export const getGroundedMaterialInfo = async (materials: string[]): Promise<GroundedMaterial[]> => {
     try {
-        const prompt = `Find where to buy or how to find these materials cheaply for a DIY project: ${materials.join(", ")}. 
-        Return a list of the materials with a short verified tip or link snippet for each.`;
+        const ai = getAI();
+        const prompt = `Find where to buy or how to find these materials cheaply for a DIY project: ${materials.join(", ")}.`;
 
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3-flash-preview",
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }]
@@ -288,7 +266,7 @@ export const getGroundedMaterialInfo = async (materials: string[]): Promise<Grou
                      result.push({
                          material: chunk.web.title || "Resource",
                          searchUrl: chunk.web.uri,
-                         snippet: "Found via Google Search"
+                         snippet: "Verified Source"
                      });
                  }
              });
@@ -298,7 +276,7 @@ export const getGroundedMaterialInfo = async (materials: string[]): Promise<Grou
              result.push({
                  material: "Project Resources",
                  searchUrl: "https://www.google.com/search?q=" + encodeURIComponent(materials.join(" ")),
-                 snippet: response.text.substring(0, 150) + "..."
+                 snippet: "Manual Search Result"
              });
         }
 
